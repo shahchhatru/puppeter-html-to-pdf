@@ -1,0 +1,20 @@
+app.get('/convert', async (req, res) => {
+  const html = fs.readFileSync(`${__dirname}/index.html`, 'utf8');
+  const pdfPath = `${__dirname}/output.pdf`;
+
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+  await page.setContent(html);
+  await page.pdf({ path: pdfPath, format: 'A4' });
+
+  await browser.close();
+
+  // Serve the PDF file for download
+  res.download(pdfPath, 'output.pdf', (err) => {
+    if (err) {
+      console.error(err);
+    } else {
+      fs.unlinkSync(pdfPath);
+    }
+  });
+});
