@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title><%= title %></title>
+<title><%= title %></title>
   <style>
 *{
       margin:0px;
@@ -39,10 +39,11 @@ h1{
 
 }
 .day{
-  padding:20px;
+  border:1px solid black;
+
 }
 .title{
-  width:10%;
+  width:9%;
   padding:10px;
   border:solid;
   text-align: center;
@@ -53,21 +54,72 @@ h1{
   width:90%;
   display:flex;
 }
+.period-container{
+  display:flex;
+  flex-direction: column;
+}
+.lectureroom-container{
+  flex:1;
+  display:flex;
+  
+}
+.lectureroom-container:nth-child(1){
+  flex:1;
+}
+
+.lectureroom-container:nth-child(2){
+  flex:1;
+}
+.items{
+  flex:1;
+}
+
+.tu-title{
+  flex:1;
+  background:greenyellow;
+  width:100%;
+  min-height: 40px;
+  display:flex;
+  flex-direction:column;
+  justify-content: center;
+  align-items: center;
+  gap:4px;
+}
+
+.day-grid{
+  display:grid;
+  background:green;
+  grid-template-columns: repeat(1fr,9);
+  grid-template-rows: 75px 75px;
+}
+
+.routine-container{
+  flex:1;
+  display:grid;
+  
+  grid-template-columns: repeat(1fr,9);
+  grid-template-rows:repeat(1fr,12);
+  background:green;
+}
   </style>
 </head>
-<body style="background-color: red !important;">
-  <h1 ><%= message %></h1>
 
-  <!-- <% if (user) { %>
-    <p>Welcome, <%= user.name %> (<%= user.email %>)</p>
-  <% } %>
-  <ul>
-  <% data.forEach(function(u) { %>
-    <li>Welcome <%= u %> </li>
-  <% }); %> -->
+
+
+<body style="background-color: red !important;">
+
+
+  
   
 </ul>
 <div style="margin:0px;border:solid;background-color:whitesmoke;display: flex; flex-direction: column;width:100%">
+  <div class="tu-title">
+    <span style="text-transform: capitalize; font-size: 1.5rem;">Tribhuvan University</span>
+    <span style="text-transform: capitalize;">IOE,Pulchowk Campus</span>
+    <span style="text-transform: capitalize;text-decoration: underline;">Department of Electronics and Computer Engineering</span>
+    <span style="text-transform: capitalize;">Class Routine</span>
+    <span><%= message %></span>
+  </div>
   <div style="display: flex;">
     <div class="title">
       <p>Timing</p>
@@ -84,48 +136,89 @@ h1{
     <% }); %>
   </div>
   </div>
-  <div style="display:flex">
-    <div class="title">
-      <p class="day">Sunday</p>
+  <div class="routine-container">
+    <div class="day">
+      Sunday
     </div>
-    <div class="periods-block">
-    </div>
-  </div>
-  <div style="display:flex">
-    <div class="title">
-      <p class="day">Monday</p>
-    </div>
-    <div class="periods-block">
-    </div>
-  </div>
-  <div style="display:flex">
-    <div class="title">
-      <p class="day">Tuesday</p>
-    </div>
-    <div class="periods-block">
-    </div>
-  </div>
-  <div style="display:flex">
-    <div class="title">
-      <p class="day">Wednesday</p>
-    </div>
-    <div class="periods-block">
-    </div>
-  </div>
-  <div style="display:flex">
-    <div class="title">
-      <p class="day">Thrusday</p>
-    </div>
-    <div class="periods-block">
-    </div>
-    </div>
-    <div style="display:flex">
-      <div class="title">
-        <p class="day">Friday</p>
+    
+      <% if (routines["sun"].length > 0) { %>
+        <% routines["sun"].forEach(function(item, index) { %>
+          <div class="headerblock" style="grid-column-start: <%= parseInt(item.starting_period_value)+1 %>; grid-column-end: <%= (parseInt(item.starting_period_value) + parseInt(item.no_of_period_value))+1 %>;">
+            <%= item.subject %>
+          </div>
+        <% }); %>
+      <% } %>
+    
+      <div class="day">
+        Sun (alt)
       </div>
-      <div class="periods-block">
-      </div>
-    </div>
+      
+        <% if (altroutine["sun"].length > 0) { %>
+          <% altroutine["sun"].forEach(function(item, index) { %>
+            <div class="headerblock" style="grid-column-start: <%= parseInt(item.starting_period_value)+1 %>; grid-column-end: <%= (parseInt(item.starting_period_value) + parseInt(item.no_of_period_value))+1 %>;">
+              <%= item.subject %>
+            </div>
+          <% }); %>
+        <% } %>
+
+        <div class="day" style="grid-row-start:3">
+          Monday
+        </div>
+        
+          <% if (routines["mon"].length > 0) { %>
+            <% routines["mon"].forEach(function(item, index) { %>
+              <div class="headerblock" style="grid-row-start:3;grid-column-start: <%= parseInt(item.starting_period_value)+1 %>; grid-column-end: <%= (parseInt(item.starting_period_value) + parseInt(item.no_of_period_value))+1 %>;">
+                <%= item.subject %>
+              </div>
+            <% }); %>
+          <% } %>
+
+          <div class="day" style="grid-row-start:4">
+            Mon (alt)
+          </div>
+          
+            <% if (altroutine["mon"].length > 0) { %>
+              <% altroutine["mon"].forEach(function(item, index) { %>
+                <div class="headerblock" style="grid-row-start:4;grid-column-start: <%= parseInt(item.starting_period_value)+1 %>; grid-column-end: <%= (parseInt(item.starting_period_value) + parseInt(item.no_of_period_value))+1 %>;">
+                  <%= item.subject %>
+                </div>
+              <% }); %>
+            <% } %>
+            <div class="day" style="grid-row-start:5">
+              Tuesday
+            </div>
+            
+              <% if (routines["tue"].length > 0) { %>
+                <% routines["tue"].forEach(function(item, index) { %>
+                  <div class="headerblock" style="grid-row-start:5;grid-column-start: <%= parseInt(item.starting_period_value)+1 %>; grid-column-end: <%= (parseInt(item.starting_period_value) + parseInt(item.no_of_period_value))+1 %>;">
+                    <%= item.subject %>
+                  </div>
+                <% }); %>
+              <% } %>
+
+              <div class="day" style="grid-row-start:6">
+                Tuesday (alt)
+              </div>
+              
+                <% if (altroutine["tue"].length > 0) { %>
+                  <% altroutine["tue"].forEach(function(item, index) { %>
+                    <div class="headerblock" style="grid-row-start:6;grid-column-start: <%= parseInt(item.starting_period_value)+1 %>; grid-column-end: <%= (parseInt(item.starting_period_value) + parseInt(item.no_of_period_value))+1 %>;">
+                      <%= item.subject %>
+                    </div>
+                  <% }); %>
+                <% } %>
+
+                <div class="day" style="grid-row-start:7">
+                  Wednesday
+                </div>
+                
+                  <% if (routines["wed"].length > 0) { %>
+                    <% routines["wed"].forEach(function(item, index) { %>
+                      <div class="headerblock" style="grid-row-start:7;grid-column-start: <%= parseInt(item.starting_period_value)+1 %>; grid-column-end: <%= (parseInt(item.starting_period_value) + parseInt(item.no_of_period_value))+1 %>;">
+                        <%= item.subject %>
+                      </div>
+                    <% }); %>
+                  <% } %>
   </div>
 </div>
 </div>
