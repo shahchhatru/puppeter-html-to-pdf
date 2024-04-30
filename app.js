@@ -15,9 +15,42 @@ const year=5;
 const course_id=1;
 const year_part=2;
 
+let names_map={}
+
+ function generateInitials(names) {
+  const initials = names.map((name) => {
+    // Split each name into words
+    const words = name.split(' ');
+
+    // Extract initials from each word
+    let nameInitials = words.map((word) => {
+      // Extract the first letter of each word
+      if (word === 'Ph.D') {
+        return ' Dr.';
+      }
+      return word.charAt(0);
+    });
+
+    // Join initials of each word to form initials of the full name
+   const end=nameInitials.pop();
+   if(end ===" Dr.") {
+       nameInitials.push(end)
+       nameInitials=nameInitials.reverse()
+   }
+   let value=nameInitials.join('');
+   names_map[value]=name;
+   return value
+  });
+    
+  
+  return initials.join(' ')
+}
+
+
+
 // Function to rearrange response data into the desired format
 // Function to rearrange response data into the desired format
-function rearrangeResponseData(responseData) {
+ function rearrangeResponseData(responseData) {
   const daysOfWeek = ["sun", "mon", "tue", "wed", "thu", "fri"];
   const rearrangedData = {};
 
@@ -27,16 +60,30 @@ function rearrangeResponseData(responseData) {
   });
 
   // Iterate through the response data and populate the rearrangedData object
-  responseData.forEach(item => {
-      const { day } = item;
-      if (!rearrangedData[day]) {
-          console.error(`Day '${day}' not found in daysOfWeek array.`);
-      } else {
-          rearrangedData[day].push(item);
-      }
-  });
+  for (const item of responseData) {
+    const { day } = item;
+    if (!rearrangedData[day]) {
+      console.error(`Day '${day}' not found in daysOfWeek array.`);
+    } else {
+      // Await the Axios request to ensure it completes before calling generateInitials
+      
+      rearrangedData[day].push({...item});
+    }
+  }
 
   return rearrangedData;
+}
+
+
+function generateInitials(names){
+  const initial=names.map(name=>{
+    //split each name into words;
+    const words =name.split(" ");
+    for( item of words){
+      console.log()
+    }
+
+  })
 }
 
 
@@ -86,40 +133,64 @@ app.get('/', async (req, res) => {
     }
 });
 
-app.post('/convert', (req, res) => {
-  console.log(req.body)
+app.get('/convert', async (req, res) => {
+  try {
+    const response = await axios.get(
+      `http://127.0.0.1:8000/api/routines/get_alternate_routines_by_year_part_year_id_course_id_and_section/?year_id=${year}&year_part=${year_part}&course_id=${course_id}&section=${section}&alternate=${'False'}`
+    );
+
+    const responseAlt = await axios.get(
+      `http://127.0.0.1:8000/api/routines/get_alternate_routines_by_year_part_year_id_course_id_and_section/?year_id=${year}&year_part=${year_part}&course_id=${course_id}&section=${section}&alternate=${'True'}`
+    );
+
+    const course_response = await axios.get(`http://127.0.0.1:8000/api/courses/${course_id}/`);
+
+    // Rearrange the response data
+    const rearrangedData = rearrangeResponseData(response.data);
+    const rearrangedDataAlt = rearrangeResponseData(responseAlt.data);
+
     const data = {
-        title: 'My Page',
-        message: 'BCT AB 4th year 2nd part',
-        user: {
-          name: 'John Doe',
-          email: 'john.doe@example.com'
-        },
-        data:['kail','hamar','cena'],
-        summer_time:['10:15','11:00','11:45','12:30','1:00','1:45','2:30','3:15','4:00'],
-        winter_time:['10:15','11:05','11:55','12:40','1:15','2:00','2:45','3:30','4:15']
-      };
+      title: 'My Page',
+      message: 'BCT AB 4th year 2nd part',
+      user: {
+        name: 'John Doe',
+        email: 'john.doe@example.com',
+      },
+      routines: rearrangedData,
+      altroutine: rearrangedDataAlt,
+      coursedata: course_response.data,
+      winter_time: ['10:15', '11:00', '11:45', '12:30', '1:00', '1:45', '2:30', '3:15', '4:00'],
+      summer_time: ['10:15', '11:05', '11:55', '12:45', '1:35', '2:25', '3:15', '4:05', '4:55']
+    };
 
-  
+    // Render the HTML page
+    res.render('index', data, async (err, html) => {
+      if (err) {
+        console.error(err);
+        return res.sendStatus(500);
+      }
 
-  res.render('index', data, (err, html) => {
-    if (err) {
-      console.error(err);
-      return res.sendStatus(500);
-    }
+      try {
+        // Convert the HTML to a PDF using Puppeteer
+        const pdfBuffer = await convertHtmlToPdf(html);
 
-    // Convert the HTML to a PDF using Puppeteer
-    convertHtmlToPdf(html).then((pdfBuffer) => {
-      // Send the PDF as a response
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', 'attachment; filename=output.pdf');
-      res.send(pdfBuffer);
-    }).catch((err) => {
-      console.error(err);
-      res.sendStatus(500);
+        // Set headers to trigger file download
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', 'attachment; filename=output.pdf');
+        
+        // Send the PDF as a response
+        res.send(pdfBuffer);
+      } catch (err) {
+        console.error(err);
+        res.sendStatus(500);
+      }
     });
-  });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Internal Server Error');
+  }
 });
+
 
 
 async function convertHtmlToPdf(html) {
