@@ -133,6 +133,48 @@ app.get('/', async (req, res) => {
     }
 });
 
+app.get('/teachers', async (req, res) => {
+  const teacher_id=2;
+  const part=2;
+
+  try {
+      const response = await axios.get( `http://127.0.0.1:8000//api/routines/get_routines_by_teacher_and_year_part/?teacher_id=${teacher_id}&year_part=${part}`);
+
+    
+
+      const teacher_detail= await axios.get(`http://127.0.0.1:8000/api/teachers/${teacher_id}/`)
+     
+      // console.log(response.data)
+      // Rearrange the response data
+      const rearrangedData = rearrangeResponseData(response.data);
+      
+      console.log(rearrangedData);
+      
+      const data = {
+          title: 'Teacher routine',
+          
+          user: {
+              name: 'John Doe',
+              email: 'john.doe@example.com',
+          },
+          // Assuming response.data is the data you want to pass to the view
+          routines: rearrangedData,
+          teacher_detail:teacher_detail.data,
+          part:part,
+          winter_time: ['10:15', '11:00', '11:45', '12:30', '1:00', '1:45', '2:30', '3:15', '4:00'],
+          summer_time: ['10:15', '11:05', '11:55', '12:45', '1:35', '2:25', '3:15', '4:05', '4:55']
+      };
+      console.log(response.data[0])
+      // Render the HTML page
+      res.render('teachers', data);
+  } catch (error) {
+      console.error(error);
+      res.status(500).send('Internal Server Error');
+ 
+    }
+});
+
+
 app.get('/convert', async (req, res) => {
   try {
     const response = await axios.get(
@@ -191,6 +233,109 @@ app.get('/convert', async (req, res) => {
   }
 });
 
+app.get('/teachers/download', async (req, res) => {
+  const teacher_id=2
+  const part=2
+  try {
+    const response = await axios.get( `http://127.0.0.1:8000//api/routines/get_routines_by_teacher_and_year_part/?teacher_id=${teacher_id}&year_part=${part}`);
+
+    
+
+      const teacher_detail= await axios.get(`http://127.0.0.1:8000/api/teachers/${teacher_id}/`)
+     
+      // console.log(response.data)
+      // Rearrange the response data
+      const rearrangedData = rearrangeResponseData(response.data);
+      
+      console.log(rearrangedData);
+      const data = {
+        title: 'Teacher routine',
+        
+        user: {
+            name: 'John Doe',
+            email: 'john.doe@example.com',
+        },
+        // Assuming response.data is the data you want to pass to the view
+        routines: rearrangedData,
+        teacher_detail:teacher_detail.data,
+        part:part,
+        winter_time: ['10:15', '11:00', '11:45', '12:30', '1:00', '1:45', '2:30', '3:15', '4:00'],
+        summer_time: ['10:15', '11:05', '11:55', '12:45', '1:35', '2:25', '3:15', '4:05', '4:55']
+    };
+    //console.log(response.data[0])
+
+    // Render the HTML page
+    res.render('teachers', data, async (err, html) => {
+      if (err) {
+        console.error(err);
+        return res.sendStatus(500);
+      }
+
+      try {
+        // Convert the HTML to a PDF using Puppeteer
+        const pdfBuffer = await convertHtmlToPdf(html);
+
+        // Set headers to trigger file download
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', 'attachment; filename=output.pdf');
+        
+        // Send the PDF as a response
+        res.send(pdfBuffer);
+      } catch (err) {
+        console.error(err);
+        res.sendStatus(500);
+      }
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+
+
+app.get('/', async (req, res) => {
+  try {
+      const response = await axios.get(
+          `http://127.0.0.1:8000/api/routines/get_alternate_routines_by_year_part_year_id_course_id_and_section/?year_id=${year}&year_part=${year_part}&course_id=${course_id}&section=${section}&alternate=${'False'}`
+      );
+
+      const responseAlt = await axios.get(
+        `http://127.0.0.1:8000/api/routines/get_alternate_routines_by_year_part_year_id_course_id_and_section/?year_id=${year}&year_part=${year_part}&course_id=${course_id}&section=${section}&alternate=${'True'}`
+    );
+
+      const course_response= await axios.get(`http://127.0.0.1:8000/api/courses/${course_id}/`)
+     
+      // console.log(response.data)
+      // Rearrange the response data
+      const rearrangedData = rearrangeResponseData(response.data);
+      const rearrangedDataAlt=rearrangeResponseData(responseAlt.data);
+      console.log(rearrangedData);
+      console.log(rearrangedDataAlt);
+
+      const data = {
+          title: 'My Page',
+          message: 'BCT AB 4th year 2nd part',
+          user: {
+              name: 'John Doe',
+              email: 'john.doe@example.com',
+          },
+          // Assuming response.data is the data you want to pass to the view
+          routines: rearrangedData,
+          altroutine:rearrangedDataAlt,
+          coursedata:course_response.data,
+          winter_time: ['10:15', '11:00', '11:45', '12:30', '1:00', '1:45', '2:30', '3:15', '4:00'],
+          summer_time: ['10:15', '11:05', '11:55', '12:45', '1:35', '2:25', '3:15', '4:05', '4:55']
+      };
+      console.log(response.data[0])
+      // Render the HTML page
+      res.render('index', data);
+  } catch (error) {
+      console.error(error);
+      res.status(500).send('Internal Server Error');
+ 
+    }
+});
 
 
 async function convertHtmlToPdf(html) {

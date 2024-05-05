@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title><%= title %></title>
+  <style>
+*{
+      margin:0px;
+      box-sizing: border-box;
+      padding:0px;
+  }
+html {
+  -webkit-print-color-adjust: exact;
+  width:100%;
+  height:100%;
+  font-family:'Courier New', Courier, monospace;
+
+}
+body{
+  position:relative;
+  width:100%;
+  height:100%;
+}
+p {
+  color: #FF0000; 
+}
+h1{
+  width:100%;
+  text-align: center;
+  padding:20px;
+
+}
+
+.headerblock{
+  padding:10px;
+  border:solid;
+  flex:1;
+  text-align: center;
+  font-size:20px;
+  
+  
+
+}
+.flexperiod{
+  display:flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.day{
+  border:1px solid black;
+  min-height: 100px;
+  display:flex;
+  justify-content: center;
+  align-items: center;
+
+}
+.title{
+  
+  width:100%;
+  padding:10px;
+  border:solid;
+  text-align: center;
+  font-size:20px;
+  height:auto;
+}
+.periods-block{
+  width:90%;
+  display:flex;
+}
+.period-container{
+  display:flex;
+  flex-direction: column;
+}
+.lectureroom-container{
+  flex:1;
+  display:flex;
+  
+}
+.lectureroom-container:nth-child(1){
+  flex:1;
+}
+
+.lectureroom-container:nth-child(2){
+  flex:1;
+}
+.items{
+  flex:1;
+}
+
+.tu-title{
+  flex:1;
+  /* background:greenyellow; */
+  width:100%;
+  min-height: 40px;
+  display:flex;
+  flex-direction:column;
+  justify-content: center;
+  align-items: center;
+  gap:4px;
+}
+
+.day-grid{
+  display:grid;
+  background:green;
+  grid-template-columns: repeat(1fr,9);
+  grid-template-rows: 75px 75px;
+}
+
+.routine-container{
+  flex:1;
+  display:grid;
+  
+  grid-template-columns: repeat(1fr,9);
+  grid-template-rows:repeat(1fr,13);
+  background:whitesmoke;
+}
+  </style>
+</head>
+
+
+
+<body style="background-color:white !important;">
+
+
+  <%
+  // Define names_map object
+  let names_map = {};
+  
+  // Define generateInitials function
+  function generateInitials(names) {
+    const initials = names.map((name) => {
+      // Split each name into words
+      const words = name.split(' ');
+  
+      // Extract initials from each word
+      let nameInitials = words.map((word) => {
+        // Extract the first letter of each word
+        if (word === 'Ph.D') {
+          return ' Dr.';
+        }
+        return word.charAt(0);
+      });
+  
+      // Join initials of each word to form initials of the full name
+      const end = nameInitials.pop();
+      nameInitials.push(end);
+      if (end === ' Dr.') {
+        
+        nameInitials = nameInitials.reverse();
+      }
+      let value = nameInitials.join('');
+      names_map[value] = name;
+      return value;
+    });
+  
+    return initials.join(' ');
+  }
+  %>
+   
+  
+</ul>
+<div style="margin:0px;border:solid;background-color:whitesmoke;display: flex; flex-direction: column;width:100%">
+  <div class="tu-title">
+    <span style="text-transform: capitalize; font-size: 1.2rem;">Tribhuvan University</span>
+    <span style="text-transform: capitalize;">IOE,Pulchowk Campus</span>
+    <span style="text-transform: capitalize;text-decoration: underline;">Department of Electronics and Computer Engineering</span>
+    <span style="text-transform: capitalize;">Teacher's  Routine <%= teacher_detail.name %> part <%= part %></span>
+    
+  </div>
+  
+  <div class="routine-container">
+    
+      <div class="title"  style="grid-row-start:1">
+        <p>Timing</p>
+        <hr>
+        <p>Days</p>
+      </div>
+    <% [0,1,2,3,4,5,6,7].forEach(function(u) { %>
+      <div class="headerblock">
+        <span style="margin-bottom: 10px;"><%= summer_time[u] %>-<%= summer_time[u+1] %></span><br/>
+        <span><%= winter_time[u] %>-<%= summer_time[u+1] %></span>
+        
+      </div>
+    <% }); %>
+    <div class="day"  style="grid-row-start:2">
+      Sunday
+    </div>
+
+    
+      <% if (routines["sun"].length > 0) { %>
+        <% routines["sun"].forEach(function(item, index) { %>
+          <div class="headerblock flexperiod" style="grid-column-start: <%= parseInt(item.starting_period_value)+1 %>; grid-column-end: <%= (parseInt(item.starting_period_value) + parseInt(item.no_of_period_value))+1 %>;">
+            <span><%= item.subject %></span>
+            <span><%= item.session_type %> <%= item.room_number %></span>
+          
+          </div>
+        <% }); %>
+      <% } %>
+    
+     
+   
+
+        <div class="day" style="grid-row-start:4">
+          Monday
+        </div>
+        
+          <% if (routines["mon"].length > 0) { %>
+            <% routines["mon"].forEach(function(item, index) { %>
+              <div class="headerblock flexperiod" style="grid-row-start:4;grid-column-start: <%= parseInt(item.starting_period_value)+1 %>; grid-column-end: <%= (parseInt(item.starting_period_value) + parseInt(item.no_of_period_value))+1 %>;">
+                <span><%= item.subject %></span>
+                <span><%= item.session_type %> <%= item.room_number %></span>
+              
+              
+              </div>
+            <% }); %>
+          <% } %>
+
+          
+            <div class="day" style="grid-row-start:6">
+              Tuesday
+            </div>
+            
+              <% if (routines["tue"].length > 0) { %>
+                <% routines["tue"].forEach(function(item, index) { %>
+                  <div class="headerblock flexperiod" style="grid-row-start:6;grid-column-start: <%= parseInt(item.starting_period_value)+1 %>; grid-column-end: <%= (parseInt(item.starting_period_value) + parseInt(item.no_of_period_value))+1 %>;">
+                    <span><%= item.subject %></span>
+                    <span><%= item.session_type %> <%= item.room_number %></span>
+                  
+                  
+                  </div>
+                <% }); %>
+              <% } %>
+
+              
+
+                <div class="day" style="grid-row-start:8">
+                  Wednesday
+                </div>
+                
+                  <% if (routines["wed"].length > 0) { %>
+                    <% routines["wed"].forEach(function(item, index) { %>
+                      <div class="headerblock flexperiod" style="grid-row-start:8;grid-column-start: <%= parseInt(item.starting_period_value)+1 %>; grid-column-end: <%= (parseInt(item.starting_period_value) + parseInt(item.no_of_period_value))+1 %>;">
+                        <span><%= item.subject %></span>
+                        <span><%= item.session_type %> <%= item.room_number %></span>
+                      
+                      
+                      </div>
+                    <% }); %>
+                  <% } %>
+               
+                  <div class="day" style="grid-row-start:10">
+                    Thrusday
+                  </div>
+                  
+                    <% if (routines["thu"].length > 0) { %>
+                      <% routines["thu"].forEach(function(item, index) { %>
+                        <div class="headerblock flexperiod" style="grid-row-start:10;grid-column-start: <%= parseInt(item.starting_period_value)+1 %>; grid-column-end: <%= (parseInt(item.starting_period_value) + parseInt(item.no_of_period_value))+1 %>;">
+                          <span><%= item.subject %></span>
+                          <span><%= item.session_type %> <%= item.room_number %></span>
+                        
+                        
+                        </div>
+                      <% }); %>
+                    <% } %>
+                    
+    
+                    <div class="day" style="grid-row-start:12">
+                      Friday
+                    </div>
+                    
+                      <% if (routines["fri"].length > 0) { %>
+                        <% routines["fri"].forEach(function(item, index) { %>
+                          <div class="headerblock flexperiod" style="grid-row-start:12;grid-column-start: <%= parseInt(item.starting_period_value)+1 %>; grid-column-end: <%= (parseInt(item.starting_period_value) + parseInt(item.no_of_period_value))+1 %>;">
+                            <span><%= item.subject %></span>
+                            <span><%= item.session_type %> <%= item.room_number %></span>
+                          
+                          
+                          </div>
+                        <% }); %>
+                      <% } %>
+
+                     
+  </div>
+</div>
+</div>
+</body>
+</html>
