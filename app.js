@@ -5,10 +5,12 @@ const fs = require('fs');
 const ejs = require('ejs');
 const path = require('path');
 const bodyParser = require('body-parser');
+const cors = require('cors');
 
 const app = express();
 const port = 3001;
 app.use(bodyParser.json())
+app.use(cors({ origin: '*', methods:"GET"}));
 
 const section='AB';
 const year=5;
@@ -91,6 +93,11 @@ function generateInitials(names){
 app.set('view engine', 'ejs')
 // Serve the index.html file
 app.get('/', async (req, res) => {
+  const year=req.body.year;
+  const year_part=req.body.year_part;
+  const section=req.body.section;
+  const course_id=req.body.course_id;
+
   try {
       const response = await axios.get(
           `http://127.0.0.1:8000/api/routines/get_alternate_routines_by_year_part_year_id_course_id_and_section/?year_id=${year}&year_part=${year_part}&course_id=${course_id}&section=${section}&alternate=${'False'}`
@@ -134,8 +141,8 @@ app.get('/', async (req, res) => {
 });
 
 app.get('/teachers', async (req, res) => {
-  const teacher_id=2;
-  const part=2;
+  const teacher_id=req.body.teacher_id;
+  const part=req.body.part;
 
   try {
       const response = await axios.get( `http://127.0.0.1:8000//api/routines/get_routines_by_teacher_and_year_part/?teacher_id=${teacher_id}&year_part=${part}`);
@@ -176,6 +183,13 @@ app.get('/teachers', async (req, res) => {
 
 
 app.get('/convert', async (req, res) => {
+  console.log("Receiving request ", req.query);
+
+  const year = req.query.year;
+  const year_part = req.query.year_part;
+  const section = req.query.section;
+  const course_id = req.query.course_id;
+
   try {
     const response = await axios.get(
       `http://127.0.0.1:8000/api/routines/get_alternate_routines_by_year_part_year_id_course_id_and_section/?year_id=${year}&year_part=${year_part}&course_id=${course_id}&section=${section}&alternate=${'False'}`
@@ -193,11 +207,14 @@ app.get('/convert', async (req, res) => {
 
     const data = {
       title: 'My Page',
-      message: 'BCT AB 4th year 2nd part',
+     
       user: {
         name: 'John Doe',
         email: 'john.doe@example.com',
       },
+      year:year,
+      year_part:year_part,
+      section:section,
       routines: rearrangedData,
       altroutine: rearrangedDataAlt,
       coursedata: course_response.data,
@@ -209,7 +226,7 @@ app.get('/convert', async (req, res) => {
     res.render('index', data, async (err, html) => {
       if (err) {
         console.error(err);
-        return res.sendStatus(500);
+        return res.status(500).send(err);
       }
 
       try {
@@ -217,34 +234,36 @@ app.get('/convert', async (req, res) => {
         const pdfBuffer = await convertHtmlToPdf(html);
 
         // Set headers to trigger file download
+        const file_name = `output_${year}_${year_part}_${section}_${course_id}.pdf`;
         res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', 'attachment; filename=output.pdf');
-        
+        res.setHeader('Content-Disposition', `attachment; filename="${file_name}"`);
+
         // Send the PDF as a response
         res.send(pdfBuffer);
       } catch (err) {
         console.error(err);
-        res.sendStatus(500);
+        res.status(500).send(err);
       }
     });
   } catch (error) {
     console.error(error);
-    res.status(500).send('Internal Server Error');
+    res.status(500).send(error);
   }
 });
 
 app.get('/teachers/download', async (req, res) => {
-  const teacher_id=2
-  const part=2
+  
   try {
+    const teacher_id=req.query.teacher_id;
+    const part=req.query.part;
+    
     const response = await axios.get( `http://127.0.0.1:8000//api/routines/get_routines_by_teacher_and_year_part/?teacher_id=${teacher_id}&year_part=${part}`);
 
     
 
       const teacher_detail= await axios.get(`http://127.0.0.1:8000/api/teachers/${teacher_id}/`)
+      const file_name=`${teacher_detail.name}routine${part}.pdf`
      
-      // console.log(response.data)
-      // Rearrange the response data
       const rearrangedData = rearrangeResponseData(response.data);
       
       console.log(rearrangedData);
@@ -277,8 +296,7 @@ app.get('/teachers/download', async (req, res) => {
 
         // Set headers to trigger file download
         res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', 'attachment; filename=output.pdf');
-        
+        res.setHeader('Content-Disposition', `attachment; filename="${file_name}"`);
         // Send the PDF as a response
         res.send(pdfBuffer);
       } catch (err) {
@@ -294,48 +312,52 @@ app.get('/teachers/download', async (req, res) => {
 
 
 
-app.get('/', async (req, res) => {
-  try {
-      const response = await axios.get(
-          `http://127.0.0.1:8000/api/routines/get_alternate_routines_by_year_part_year_id_course_id_and_section/?year_id=${year}&year_part=${year_part}&course_id=${course_id}&section=${section}&alternate=${'False'}`
-      );
+// app.get('/', async (req, res) => {
+//   try {
+//     const year=req.body.year;
+//     const year_part=req.body.year_part;
+//     const section=req.body.section;
+//     const course_id=req.body.course_id;
+//       const response = await axios.get(
+//           `http://127.0.0.1:8000/api/routines/get_alternate_routines_by_year_part_year_id_course_id_and_section/?year_id=${year}&year_part=${year_part}&course_id=${course_id}&section=${section}&alternate=${'False'}`
+//       );
 
-      const responseAlt = await axios.get(
-        `http://127.0.0.1:8000/api/routines/get_alternate_routines_by_year_part_year_id_course_id_and_section/?year_id=${year}&year_part=${year_part}&course_id=${course_id}&section=${section}&alternate=${'True'}`
-    );
+//       const responseAlt = await axios.get(
+//         `http://127.0.0.1:8000/api/routines/get_alternate_routines_by_year_part_year_id_course_id_and_section/?year_id=${year}&year_part=${year_part}&course_id=${course_id}&section=${section}&alternate=${'True'}`
+//     );
 
-      const course_response= await axios.get(`http://127.0.0.1:8000/api/courses/${course_id}/`)
+//       const course_response= await axios.get(`http://127.0.0.1:8000/api/courses/${course_id}/`)
      
-      // console.log(response.data)
-      // Rearrange the response data
-      const rearrangedData = rearrangeResponseData(response.data);
-      const rearrangedDataAlt=rearrangeResponseData(responseAlt.data);
-      console.log(rearrangedData);
-      console.log(rearrangedDataAlt);
+//       // console.log(response.data)
+//       // Rearrange the response data
+//       const rearrangedData = rearrangeResponseData(response.data);
+//       const rearrangedDataAlt=rearrangeResponseData(responseAlt.data);
+//       console.log(rearrangedData);
+//       console.log(rearrangedDataAlt);
 
-      const data = {
-          title: 'My Page',
-          message: 'BCT AB 4th year 2nd part',
-          user: {
-              name: 'John Doe',
-              email: 'john.doe@example.com',
-          },
-          // Assuming response.data is the data you want to pass to the view
-          routines: rearrangedData,
-          altroutine:rearrangedDataAlt,
-          coursedata:course_response.data,
-          winter_time: ['10:15', '11:00', '11:45', '12:30', '1:00', '1:45', '2:30', '3:15', '4:00'],
-          summer_time: ['10:15', '11:05', '11:55', '12:45', '1:35', '2:25', '3:15', '4:05', '4:55']
-      };
-      console.log(response.data[0])
-      // Render the HTML page
-      res.render('index', data);
-  } catch (error) {
-      console.error(error);
-      res.status(500).send('Internal Server Error');
+//       const data = {
+//           title: 'My Page',
+//           message: 'BCT AB 4th year 2nd part',
+//           user: {
+//               name: 'John Doe',
+//               email: 'john.doe@example.com',
+//           },
+//           // Assuming response.data is the data you want to pass to the view
+//           routines: rearrangedData,
+//           altroutine:rearrangedDataAlt,
+//           coursedata:course_response.data,
+//           winter_time: ['10:15', '11:00', '11:45', '12:30', '1:00', '1:45', '2:30', '3:15', '4:00'],
+//           summer_time: ['10:15', '11:05', '11:55', '12:45', '1:35', '2:25', '3:15', '4:05', '4:55']
+//       };
+//       console.log(response.data[0])
+//       // Render the HTML page
+//       res.render('index', data);
+//   } catch (error) {
+//       console.error(error);
+//       res.status(500).send('Internal Server Error');
  
-    }
-});
+//     }
+// });
 
 
 async function convertHtmlToPdf(html) {
